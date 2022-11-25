@@ -7,19 +7,26 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.w3c.dom.Text;
 
 public class HomeActivity extends AppCompatActivity {
 
     private Button PositiveButton,NegativeButton,AyarlarButton;
-    private TextView CounterTxt,AltLimit,UstLimit,Bildirim,Titresim;
-    private Integer Counter;
+    private TextView CounterTxt,AltLimit,UstLimit,Bildirim,Titresim,Limitler;
+    private Integer Counter,AltLimitDegeri,UstLimitDegeri;
+
+    private Vibrator vibrator;
 
     private SensorManager sensorManager;
     private Sensor sensor;
@@ -52,11 +59,17 @@ public class HomeActivity extends AppCompatActivity {
         AltLimit = (TextView) findViewById(R.id.altLimit);
         UstLimit = (TextView) findViewById(R.id.UstLimit);
         Titresim = (TextView) findViewById(R.id.Titresim);
+        Limitler = (TextView) findViewById(R.id.Limitler);
 
         Bildirim.setText(String.valueOf(SharedPrefs.getInstance(this).read("bildirim" ,false)));
         AltLimit.setText(String.valueOf(SharedPrefs.getInstance(this).read("altlimit" ,"0")));
         UstLimit.setText(String.valueOf(SharedPrefs.getInstance(this).read("ustlimit" ,"100")));
         Titresim.setText(String.valueOf(SharedPrefs.getInstance(this).read("titresim" ,false)));
+        Limitler.setText(String.valueOf(SharedPrefs.getInstance(this).read("limitler" ,false)));
+
+
+        AltLimitDegeri = Integer.parseInt(SharedPrefs.getInstance(this).read("altlimit","0"));
+        UstLimitDegeri = Integer.parseInt(SharedPrefs.getInstance(this).read("ustlimit","100"));
 
 
 
@@ -81,8 +94,17 @@ public class HomeActivity extends AppCompatActivity {
         });
 
 
-
         InitCounter();
+
+        if(Counter>Integer.parseInt(SharedPrefs.getInstance(this).read("ustlimit","100"))){
+            Counter = Integer.parseInt(SharedPrefs.getInstance(this).read("ustlimit","100"));
+            CounterTxt.setText(Counter+"");
+        }
+
+        if(Counter<Integer.parseInt(SharedPrefs.getInstance(this).read("altlimit","0"))){
+            Counter = Integer.parseInt(SharedPrefs.getInstance(this).read("altlimit","0"));
+            CounterTxt.setText(Counter+"");
+        }
 
     }
 
@@ -102,14 +124,53 @@ public class HomeActivity extends AppCompatActivity {
         CounterTxt.setText(Counter+"");
     }
 
+    private void Vibrate(){
+        Log.v("Titresim  ","Aktif");
+
+        if(vibrator==null){
+            return;
+        }
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            vibrator.vibrate(VibrationEffect.createOneShot(1000,VibrationEffect.DEFAULT_AMPLITUDE));
+        }
+        else{
+            long[] patern={0,200,10,500};
+            vibrator.vibrate(patern,-1);
+        }
+
+    }
+
     private void Arttir(Integer deger){
-        Counter+=deger;
-        CounterTxt.setText(Counter+"");
+
+        if(Counter+deger>UstLimitDegeri && SharedPrefs.getInstance(this).read("limitler",false)){
+            if(SharedPrefs.getInstance(this).read("bildirim",false)){
+                Toast.makeText(getApplicationContext(), "Üst Limite Ulaştın", Toast.LENGTH_SHORT).show();
+            }
+            if(SharedPrefs.getInstance(this).read("titresim",false)){
+                Vibrate();
+            }
+        }else{
+            Counter+=deger;
+            CounterTxt.setText(Counter+"");
+        }
+
     }
 
     private void Azalt(Integer deger){
-        Counter-=deger;
-        CounterTxt.setText(Counter+"");
+
+        if(Counter-deger<AltLimitDegeri && SharedPrefs.getInstance(this).read("limitler",false)){
+          if(SharedPrefs.getInstance(this).read("bildirim",false)){
+              Toast.makeText(getApplicationContext(), "Alt Limite Ulaştın", Toast.LENGTH_SHORT).show();
+          }
+          if(SharedPrefs.getInstance(this).read("titresim",false)){
+              Vibrate();
+          }
+        }else{
+            Counter-=deger;
+            CounterTxt.setText(Counter+"");
+        }
+
     }
 
 
@@ -121,7 +182,17 @@ public class HomeActivity extends AppCompatActivity {
         Titresim.setText(String.valueOf(SharedPrefs.getInstance(this).read("titresim",false)));
         AltLimit.setText(String.valueOf(SharedPrefs.getInstance(this).read("altlimit","0")));
         UstLimit.setText(String.valueOf(SharedPrefs.getInstance(this).read("ustlimit","100")));
+        Limitler.setText(String.valueOf(SharedPrefs.getInstance(this).read("limitler" ,false)));
 
+        if(Counter>Integer.parseInt(SharedPrefs.getInstance(this).read("ustlimit","100"))){
+            Counter = Integer.parseInt(SharedPrefs.getInstance(this).read("ustlimit","100"));
+            CounterTxt.setText(Counter+"");
+        }
+
+        if(Counter<Integer.parseInt(SharedPrefs.getInstance(this).read("altlimit","0"))){
+            Counter = Integer.parseInt(SharedPrefs.getInstance(this).read("altlimit","0"));
+            CounterTxt.setText(Counter+"");
+        }
 
         sensorEventListener = new SensorEventListener() {
             @Override

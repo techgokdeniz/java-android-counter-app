@@ -11,7 +11,7 @@ import android.widget.EditText;
 
 public class Settings extends AppCompatActivity {
 
-    private CheckBox Titresim,Bildirim;
+    private CheckBox Titresim,Bildirim,Limitler;
     private EditText UstLimitBox,AltLimitBox;
 
     @Override
@@ -21,12 +21,14 @@ public class Settings extends AppCompatActivity {
 
         Titresim = (CheckBox) findViewById(R.id.TitresimAc);
         Bildirim = (CheckBox) findViewById(R.id.BildirimAc);
+        Limitler = (CheckBox) findViewById(R.id.LimitAc);
 
         UstLimitBox = (EditText) findViewById(R.id.UstLimitBox);
         AltLimitBox = (EditText) findViewById(R.id.AltLimitBox);
 
         Titresim.setChecked(SharedPrefs.getInstance(this).read("titresim",false));
         Bildirim.setChecked(SharedPrefs.getInstance(this).read("bildirim",false));
+        Limitler.setChecked(SharedPrefs.getInstance(this).read("limitler",false));
 
         Titresim.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -36,6 +38,18 @@ public class Settings extends AppCompatActivity {
                 }
                 else{
                     SharedPrefs.getInstance(Settings.this).write("titresim",false);
+                }
+            }
+        });
+
+        Limitler.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if(compoundButton.isChecked()){
+                    SharedPrefs.getInstance(Settings.this).write("limitler",true);
+                }
+                else{
+                    SharedPrefs.getInstance(Settings.this).write("limitler",false);
                 }
             }
         });
